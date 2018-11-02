@@ -60,7 +60,7 @@ def clean_category_names(categories):
     2.) Removing underscores
     
     INPUT:
-        categories: Pandas DataFrame that stores diaster message categories
+        categories: Pandas DataFrame that stores disaster message categories
 
     OUTPUT:
         category_colnames: Clean category column names"""
