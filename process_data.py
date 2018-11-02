@@ -54,7 +54,7 @@ def clean_category_names(categories):
     where <category> is a string followed by a 0 or 1 integer value.
     
     This function creates a set of clean category names by applying
-    the following two transformattions:
+    two transformations:
     
     1.) Splitting a category string using the '-' character
     2.) Removing underscores
