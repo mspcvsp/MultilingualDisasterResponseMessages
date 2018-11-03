@@ -5,6 +5,7 @@ https://www.figure-eight.com/dataset/combined-disaster-response-data/
 """
 
 # import libraries
+import numpy as np
 import pandas as pd
 import re
 from sqlalchemy import create_engine
@@ -44,6 +45,18 @@ def process_data():
     df = df.drop_duplicates()
 
     assert df.duplicated().sum() == 0, "Duplicates not removed"
+
+    # Filter invalid category labels
+    select_data =\
+        ((df.iloc[:,4:].values > 1).sum(axis=1) == 0).astype('bool')
+
+    percent_filtered =\
+        100 * (1 - (np.count_nonzero(select_data) / len(select_data)))
+
+    print("Percentage of invalid category label(s): %.2f%%" %\
+        (percent_filtered))
+
+    df = df[select_data]
 
     # Save the clean dataset into an sqlite database.
     engine = create_engine('sqlite:///DisasterResponse.db')
