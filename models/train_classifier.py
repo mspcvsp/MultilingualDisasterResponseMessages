@@ -220,7 +220,7 @@ def init_pipeline(arguments):
 
     OUTPUT:
         pipeline: Pipeline class object handle"""
-    return Pipeline([('preprocess', TextPreprocessor()),
+    return Pipeline([('tokenize', TextPreprocessor()),
                      ('vectorizer',
                      TfidfVectorizer(ngram_range=(1, 2))),
                      ('clf',
