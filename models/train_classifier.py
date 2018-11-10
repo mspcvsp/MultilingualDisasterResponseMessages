@@ -40,10 +40,10 @@ from argparse import ArgumentParser
 from sklearn.metrics import classification_report
 from sqlalchemy import create_engine
 from sklearn.model_selection import GridSearchCV
+from sklearn.externals import joblib
 import json
 import nltk        
 import pandas as pd
-import pickle
 from sklearn.pipeline import Pipeline
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
@@ -152,15 +152,15 @@ def train_classifer():
 
     parameters = init_gridsearch_parameters(arguments)
 
-    cv = GridSearchCV(pipeline,
-                      parameters,
-                      verbose=arguments.verbose,
-                      n_jobs=arguments.n_jobs,
-                      cv=arguments.cv)
+    clf = GridSearchCV(pipeline,
+                       parameters,
+                       verbose=arguments.verbose,
+                       n_jobs=arguments.n_jobs,
+                       cv=arguments.cv)
 
-    cv.fit(X_train, Y_train)
+    clf.fit(X_train, Y_train)
 
-    Y_refined_pred = cv.predict(X_test)
+    Y_refined_pred = clf.predict(X_test)
 
     refined_scoring_df = evaluate_model(Y_test, 
                                         Y_refined_pred)
@@ -173,7 +173,7 @@ def train_classifer():
     # https://machinelearningmastery.com/
     #   save-load-machine-learning-models-python-scikit-learn/
     with open(arguments.model_path, 'wb') as fp:
-        pickle.dump([cv, Y_train.columns], fp)
+        joblib.dump(clf, fp)
 
 def download_nltk_data():
     """Downloads Natural Language Toolkit data
