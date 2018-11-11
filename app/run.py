@@ -1,78 +1,51 @@
+import sys
 import json
 import plotly
+from plotly import graph_objs
 import pandas as pd
-
-from nltk.stem import WordNetLemmatizer
-from nltk.tokenize import word_tokenize
 
 from flask import Flask
 from flask import render_template, request, jsonify
-from plotly.graph_objs import Bar
 from sklearn.externals import joblib
 from sqlalchemy import create_engine
-
+from sklearn.model_selection import train_test_split
+from textblob import TextBlob
 
 app = Flask(__name__)
 
-def tokenize(text):
-    tokens = word_tokenize(text)
-    lemmatizer = WordNetLemmatizer()
-
-    clean_tokens = []
-    for tok in tokens:
-        clean_tok = lemmatizer.lemmatize(tok).lower().strip()
-        clean_tokens.append(clean_tok)
-
-    return clean_tokens
-
 # load data
-engine = create_engine('sqlite:///../data/YourDatabaseName.db')
-df = pd.read_sql_table('YourTableName', engine)
+engine = create_engine('sqlite:///../data/DisasterResponse.db')
+df = pd.read_sql_table('Messages', engine)
 
 # load model
-model = joblib.load("../models/your_model_name.pkl")
-
+sys.path.append("../models")
+model = joblib.load("../models/classifier.pkl")
 
 # index webpage displays cool visuals and receives user input text for model
 @app.route('/')
 @app.route('/index')
 def index():
-    
-    # extract data needed for visuals
-    # TODO: Below is an example - modify to extract data for your own visuals
-    genre_counts = df.groupby('genre').count()['message']
-    genre_names = list(genre_counts.index)
-    
-    # create visuals
-    # TODO: Below is an example - modify to create your own visuals
-    graphs = [
-        {
-            'data': [
-                Bar(
-                    x=genre_names,
-                    y=genre_counts
-                )
-            ],
+    """Renders the web application index page"""
 
-            'layout': {
-                'title': 'Distribution of Message Genres',
-                'yaxis': {
-                    'title': "Count"
-                },
-                'xaxis': {
-                    'title': "Genre"
-                }
-            }
-        }
-    ]
-    
+    # extract data needed for visuals
+    training_data = init_training_data(df,
+                                       model)
+
+    category_percentage_df = init_categorypercentage_df(training_data)
+
+    sentiment_df = evaluate_category_sentiment('water',
+                                               training_data)
+
+    # create visuals
+    graphs = [init_categorypercentage_plot(category_percentage_df),
+              init_sentiment_histogram(sentiment_df)]
+
     # encode plotly graphs in JSON
     ids = ["graph-{}".format(i) for i, _ in enumerate(graphs)]
     graphJSON = json.dumps(graphs, cls=plotly.utils.PlotlyJSONEncoder)
     
     # render web page with plotly graphs
     return render_template('master.html', ids=ids, graphJSON=graphJSON)
-
 
 # web page that handles user query and displays model results
 @app.route('/go')
@@ -91,10 +64,165 @@ def go():
         classification_result=classification_results
     )
 
-
 def main():
-    app.run(host='0.0.0.0', port=3001, debug=True)
+    """Runs the web application"""
+    app.run(host='127.0.0.1', port=3001, debug=True)
 
+def init_training_data(df,
+                       model):
+    """Initializes a data frame that stores the training data
+    
+    INPUT:
+        df: Data frame that stores Figure Eight Multilingual Disaster 
+            Response Messages
+
+        model: scikit-learn classifier object handle
+
+    OUTPUT:
+        training_data_df: Pandas DataFrame that stores training data"""
+    params = model.get_params()
+    params = params['estimator__clf'].get_params()
+
+    X_train, _, Y_train, _ =\
+        train_test_split(df['message'].values,
+                         df.iloc[:,4:],
+                         random_state=params['random_state'],
+                         train_size=0.7,
+                         test_size=0.3)
+
+    train_messages = pd.DataFrame(X_train, columns=['message'])
+
+    Y_train = Y_train.reset_index(drop=True)
+
+    return pd.concat([train_messages, Y_train], axis=1)
+
+def init_categorypercentage_df(training_data_df):
+    """Initializes a Pandas DataFrame that stores Figure Eight 
+    multilingual disaster response message category percentages
+    
+    INPUT:
+        training_data_df: Pandas DataFrame that stores training data
+
+    OUTPUT:
+        category_percentage_df: Pandas DataFrame that stores Figure Eight 
+                                multilingual disaster response message 
+                                category percentages
+    """
+    normalization = 100 / training_data_df.shape[0]
+
+    category_percentage = []
+
+    for key in training_data_df.columns[1:]:
+        category_percentage.append((key,
+                                    normalization *
+                                    training_data_df[key].sum()))
+    
+    category_percentage_df =\
+        pd.DataFrame(category_percentage,
+                     columns=['category', 'percentage'])
+
+    category_percentage_df =\
+        category_percentage_df.sort_values('percentage',
+                                           ascending=False)
+
+    return category_percentage_df.reset_index(drop=True)
+
+def evaluate_category_sentiment(category,
+                                training_data_df):
+    """Evaluates the sentiment of a category
+    
+    INPUT:
+        category: String that refers to a specific message category
+        
+        training_data_df: Pandas DataFrame that stores training data
+
+    OUTPUT:
+        sentiment_df: Pandas DataFrame that stores the estimated
+                      sentiment for a specific message category"""
+    categorydata_df =\
+        training_data_df[training_data_df[category] == 1].copy()
+
+    categorydata_df = categorydata_df.reset_index(drop=True)
+    
+    sentiment = []
+    for idx in range(categorydata_df.shape[0]):
+        tb = TextBlob(categorydata_df.loc[idx, 'message'])
+        sentiment.append((tb.polarity, tb.subjectivity))
+
+    return pd.DataFrame(sentiment, columns=['polarity','subjectivity'])
+
+def init_categorypercentage_plot(category_percentage_df):
+    """Initialize a training data message category percentages
+    horizontal bar chart
+    
+    INPUT:
+        category_percentage_df: Pandas DataFrame that stores Figure Eight 
+                                multilingual disaster response message 
+                                category percentages
+
+    OUTPUT:
+        figureobj: Figure class object handle"""
+    data = [graph_objs.Bar(x=category_percentage_df['percentage'].values,
+                           y=category_percentage_df['category'].values,
+                           orientation = 'h')]
+
+    layout =\
+        graph_objs.Layout(title='Training Data<br>Category Percentage',
+                          font=dict(family='Courier New, monospace',
+                                    size=16,
+                                    color='#7f7f7f'),
+                          xaxis=dict(title='Percentage'),
+                          yaxis=dict(title='Category'),
+                          width=500,
+                          height=500,
+                          margin=graph_objs.layout.Margin(l=250,
+                                                          r=50,
+                                                          b=100,
+                                                          t=100,
+                                                          pad=4))
+
+    return graph_objs.Figure(data=data, layout=layout)
+
+def init_sentiment_histogram(sentiment_df):
+    """
+    Generates a water message sentiment histogram
+
+    INPUT:
+        sentiment_df: Pandas DataFrame that stores the estimated
+                      sentiment for a specific message category
+
+    OUTPUT:
+        figureobj: Figure class object handle 
+    """
+    polarity = graph_objs.Histogram(x=sentiment_df['polarity'],
+                                    name='polarity',
+                                    histnorm='probability density',
+                                    opacity=0.75)
+
+    subjectivity = graph_objs.Histogram(x=sentiment_df['subjectivity'],
+                                        name='subjectivity',
+                                        histnorm='probability density',
+                                        opacity=0.75)
+
+    data = [polarity, subjectivity]
+
+    layout =\
+        graph_objs.Layout(title='Water Message<br>Sentiment',
+                          font=dict(family='Courier New, monospace',
+                          size=16,
+                          color='#7f7f7f'),
+                          xaxis=dict(title='Value'),
+                          yaxis=dict(title='Probability<br>Density'),
+                          width=500,
+                          height=500,
+                          margin=graph_objs.layout.Margin(l=70,
+                                                          r=50,
+                                                          b=100,
+                                                          t=100,
+                                                          pad=4),
+                          barmode='overlay')
+
+    return graph_objs.Figure(data=data, layout=layout)
 
 if __name__ == '__main__':
     main()
