@@ -194,25 +194,17 @@ def init_sentiment_histogram(sentiment_df):
     OUTPUT:
         figureobj: Figure class object handle 
     """
-    polarity = graph_objs.Histogram(x=sentiment_df['polarity'],
-                                    name='polarity',
-                                    histnorm='probability density',
-                                    opacity=0.75)
-
-    subjectivity = graph_objs.Histogram(x=sentiment_df['subjectivity'],
-                                        name='subjectivity',
-                                        histnorm='probability density',
-                                        opacity=0.75)
-
-    data = [polarity, subjectivity]
+    data = [graph_objs.Scatter(x=sentiment_df['subjectivity'],
+                               y=sentiment_df['polarity'],
+                               mode='markers')]
 
     layout =\
         graph_objs.Layout(title='Water Message<br>Sentiment',
                           font=dict(family='Courier New, monospace',
                           size=16,
                           color='#7f7f7f'),
-                          xaxis=dict(title='Value'),
-                          yaxis=dict(title='Probability<br>Density'),
+                          xaxis=dict(title='Subjectivity'),
+                          yaxis=dict(title='Polarity'),
                           width=500,
                           height=500,
                           margin=graph_objs.layout.Margin(l=70,
