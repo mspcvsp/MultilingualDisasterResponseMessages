@@ -29,5 +29,17 @@ Construct a classifier that predicts [Figure Eight multilingual disaster respons
 - models  
   - TextPreprocessor.py - Custom [tokenzier](https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis-tokenizers.html) that is placed in a separate *.py file in order to run [GridSearchCV](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html) in parallel. 
   - train_classifier.py - Trains a [random forest classifier](https://en.wikipedia.org/wiki/Random_forest) to predict [Figure Eight multilingual disaster response message](https://www.figure-eight.com/dataset/combined-disaster-response-data/) categories.  
-
-### Libraries Used:
+  
+### Libraries Used:  
+- [argparse](https://docs.python.org/3/library/argparse.html)  
+- [flask](http://flask.pocoo.org)  
+- [json](https://docs.python.org/3/library/json.html)  
+- [nltk](https://www.nltk.org)  
+- [numpy](http://www.numpy.org)  
+- [pandas](https://pandas.pydata.org)  
+- [plotly](https://plot.ly/python/)  
+- [re](https://docs.python.org/3/library/re.html)  
+- [sklearn](https://scikit-learn.org/stable/)  
+- [sqlalchemy](https://www.sqlalchemy.org)  
+- [textblob](https://textblob.readthedocs.io/en/dev/)  
+- [warnings](https://docs.python.org/3.7/library/warnings.html)  
