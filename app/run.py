@@ -1,3 +1,16 @@
+"""
+Backend for a web application that:
+
+1.) Predicts disaster response message categories
+
+2.) Generates two plots that describe disaster response message
+category prediction training data
+
+Data set URL:
+------------
+https://www.figure-eight.com/dataset/combined-disaster-response-data/
+"""
+
 import sys
 import json
 import plotly
@@ -66,14 +79,14 @@ def go():
 
 def main():
     """Runs the web application"""
-    app.run(host='127.0.0.1', port=3001, debug=True)
+    app.run(host='0.0.0.0', port=3001, debug=True)
 
 def init_training_data(df,
                        model):
     """Initializes a data frame that stores the training data
     
     INPUT:
-        df: Data frame that stores Figure Eight Multilingual Disaster 
+        df: Pandas DataFrame that stores Figure Eight Multilingual Disaster
             Response Messages
 
         model: scikit-learn classifier object handle
@@ -152,7 +165,7 @@ def evaluate_category_sentiment(category,
     return pd.DataFrame(sentiment, columns=['polarity','subjectivity'])
 
 def init_categorypercentage_plot(category_percentage_df):
-    """Initialize a training data message category percentages
+    """Initializes a training data message category percentages
     horizontal bar chart
     
     INPUT:
@@ -185,7 +198,7 @@ def init_categorypercentage_plot(category_percentage_df):
 
 def init_sentiment_histogram(sentiment_df):
     """
-    Generates a water message sentiment histogram
+    Generates a water message sentiment scatter plot
 
     INPUT:
         sentiment_df: Pandas DataFrame that stores the estimated
