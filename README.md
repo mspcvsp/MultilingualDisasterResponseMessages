@@ -28,6 +28,6 @@ Construct a classifier that predicts [Figure Eight multilingual disaster respons
   - process_data.py - Cleans the [Figure Eight multilingual disaster response messages](https://www.figure-eight.com/dataset/combined-disaster-response-data/) dataset and stores it in an SQLLite database  
 - models  
   - TextPreprocessor.py - Custom [tokenzier](https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis-tokenizers.html) that is placed in a separate *.py file in order to run [GridSearchCV](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html) in parallel. 
-  - train_classifier.py - Trains a [random forest classifier](https://en.wikipedia.org/wiki/Random_forest) to [Figure Eight multilingual disaster response message](https://www.figure-eight.com/dataset/combined-disaster-response-data/) categories.  
+  - train_classifier.py - Trains a [random forest classifier](https://en.wikipedia.org/wiki/Random_forest) to predict [Figure Eight multilingual disaster response message](https://www.figure-eight.com/dataset/combined-disaster-response-data/) categories.  
 
 ### Libraries Used:
