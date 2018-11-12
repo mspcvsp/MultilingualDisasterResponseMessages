@@ -16,6 +16,15 @@ Construct a classifier that predicts [Figure Eight multilingual disaster respons
 
 3. Go to http://0.0.0.0:3001/
 
-### Files:
+### Files:  
+- app  
+  - run.py: Web application backend implemented using [Flask](http://flask.pocoo.org/)  
+  - templates  
+    - master.html - Web application front end  
+    - go.html - Defines web page that is rendered when a user requests the prediction of message categories  
+- data  
+  - disaster_categories.csv - Comma Separated Value (CSV) file that stores disaster response message categories  
+  - disaster_messages.csv - Comma Separated Value (CSV) file that stores disaster response messages  
+  - process_data.py - Cleans the [Figure Eight multilingual disaster response messages]((https://www.figure-eight.com/dataset/combined-disaster-response-data/) dataset and stores it in an SQLLite database  
 
 ### Libraries Used:
